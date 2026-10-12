@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { getAllProjects, deleteProject } from "../API/projectAPI";
+import { Link } from "react-router-dom";
+
+import { getAllProjects, createProject, updateProject, updateStatus, deleteProject, } from "../API/projectapi";
+
+import ProjectModel from "../components/ProjectModel.jsx";
+//import { createProject } from "../API/projectapi";
 import "./Dashboard.css";
 
 const Dashboard = () => {
@@ -10,6 +15,8 @@ const Dashboard = () => {
     const [departmentFilter, setDepartmentFilter] = useState("All");
     const [selectedStatus, setSelectedStatus] = useState({});
     const [loading, setLoading] = useState(true);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     // Fetch all projects
     async function fetchAllData() {
@@ -145,7 +152,7 @@ const Dashboard = () => {
                 <button
                     type="button"
                     className="add-project-btn"
-                    onClick={() => alert("Connect your Add Project form here.")}
+                    onClick={() => setModalOpen(true)}
                 >
                     + Add New Project
                 </button>
@@ -308,6 +315,34 @@ const Dashboard = () => {
             <p className="project-count">
                 Showing {filteredProjects.length} of {projects.length} projects
             </p>
+
+            {/* Add New Project Modal */}
+            <ProjectModel
+                open={modalOpen}
+                project={null}
+                saving={saving}
+                onClose={() => setModalOpen(false)}
+                onSave={async (formData) => {
+                    try {
+                        setSaving(true);
+
+                        await createProject(formData);
+
+                        const data = await getAllProjects();
+                        setProjects(Array.isArray(data) ? data : []);
+
+                        setModalOpen(false);
+                    } catch (error) {
+                        console.error(
+                            "Project creation failed:",
+                            error
+                        );
+                        throw error;
+                    } finally {
+                        setSaving(false);
+                    }
+                }}
+            />
         </div>
     );
 };
